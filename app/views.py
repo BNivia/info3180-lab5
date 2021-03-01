@@ -42,11 +42,16 @@ def login():
                 login_user(user)
                 # remember to flash a message to the user
                 flash('Login successful!', 'success')
-                return redirect(url_for("home")) # they should be redirected to a secure-page route instead     
+                return redirect(url_for("secure_page")) # they should be redirected to a secure-page route instead     
             else:
                 flash('Username or password is incorrect.', 'danger')   
     flash_errors(form)
     return render_template("login.html", form=form)
+
+@app.route("/secure-page")
+@login_required
+def secure_page():
+    return render_template("secure_page.html")
 
 
 # user_loader callback. This callback is used to reload the user object from
@@ -54,7 +59,6 @@ def login():
 @login_manager.user_loader
 def load_user(id):
     return UserProfile.query.get(int(id))
-
 ###
 # The functions below should be applicable to all Flask apps.
 ###
@@ -77,6 +81,13 @@ def add_header(response):
     response.headers['Cache-Control'] = 'public, max-age=0'
     return response
 
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(u"Error in the %s field - %s" % (
+                getattr(form, field).label.text,
+                error
+            ), 'danger')
 
 @app.errorhandler(404)
 def page_not_found(error):
